@@ -67,15 +67,28 @@
 
         <div id="view-quiz" class="view-section" style="display: none;">
             <div class="quiz-container">
-                <div class="theme-selector-container">
-                    <label for="theme-select">Choisissez un thème :</label>
-                    <div class="select-wrapper">
-                        <select id="theme-select" class="theme-select">
-                            <option value="all">Tous les mots (Mélangés)</option>
-                            <option value="perso">Mes mots personnels</option>
-                            <!-- PDF Themes will be injected here -->
-                        </select>
-                        <svg class="select-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                <div class="theme-selector-group">
+                    <div class="theme-selector-container">
+                        <label for="theme-select">Choisissez un thème :</label>
+                        <div class="select-wrapper">
+                            <select id="theme-select" class="theme-select">
+                                <option value="all">Tous les mots (Mélangés)</option>
+                                <option value="perso">Mes mots personnels</option>
+                                <!-- PDF Themes will be injected here -->
+                            </select>
+                            <svg class="select-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                    </div>
+
+                    <div class="theme-selector-container">
+                        <label for="quiz-direction">Direction :</label>
+                        <div class="select-wrapper">
+                            <select id="quiz-direction" class="theme-select">
+                                <option value="fr-nl">Français → Néerlandais</option>
+                                <option value="nl-fr">Néerlandais → Français</option>
+                            </select>
+                            <svg class="select-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
                     </div>
                 </div>
 

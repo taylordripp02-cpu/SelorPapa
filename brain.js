@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const correctionText = document.getElementById('correction-text');
     const quizStatus = document.getElementById('quiz-status');
     const themeSelect = document.getElementById('theme-select');
+    const quizDirection = document.getElementById('quiz-direction');
 
     // Library Elements
     const librarySearch = document.getElementById('library-search');
@@ -58,6 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Theme select change event
     themeSelect.addEventListener('change', () => {
+        startQuiz(); // restart quiz with new pool
+    });
+
+    // Direction change event
+    quizDirection.addEventListener('change', () => {
         startQuiz(); // restart quiz with new pool
     });
 
@@ -339,8 +345,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const randomIndex = Math.floor(Math.random() * availableVocabs.length);
         currentQuizWord = availableVocabs[randomIndex];
 
-        // Display french word on front
-        quizWordFr.textContent = currentQuizWord.fr;
+        // Display word on front based on direction
+        const direction = quizDirection.value;
+        const isFrToNl = direction === 'fr-nl';
+        
+        const cardLabel = flashcard.querySelector('.card-label');
+        if (isFrToNl) {
+            cardLabel.textContent = "Traduisez ce mot en Néerlandais :";
+            quizAnswer.placeholder = "Votre réponse en NL...";
+            quizWordFr.textContent = currentQuizWord.fr;
+        } else {
+            cardLabel.textContent = "Vertaal dit woord in het Frans :";
+            quizAnswer.placeholder = "Votre réponse en FR...";
+            quizWordFr.textContent = currentQuizWord.nl;
+        }
         
         // Focus input automatically
         setTimeout(() => quizAnswer.focus(), 100);
@@ -362,8 +380,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!currentQuizWord) return;
 
+        const direction = quizDirection.value;
+        const isFrToNl = direction === 'fr-nl';
+
         const userAnswer = quizAnswer.value.trim().toLowerCase();
-        const correctAnswer = currentQuizWord.nl.trim().toLowerCase();
+        const correctAnswer = (isFrToNl ? currentQuizWord.nl : currentQuizWord.fr).trim().toLowerCase();
 
         // Basic string match (ignoring case and outer spaces)
         const isCorrect = userAnswer === correctAnswer;
@@ -376,18 +397,23 @@ document.addEventListener('DOMContentLoaded', () => {
         quizForm.style.display = 'none';
         quizAnswer.disabled = true;
         
+        const direction = quizDirection.value;
+        const isFrToNl = direction === 'fr-nl';
+        const sourceWord = isFrToNl ? currentQuizWord.fr : currentQuizWord.nl;
+        const targetWord = isFrToNl ? currentQuizWord.nl : currentQuizWord.fr;
+
         if (isCorrect) {
             flashcardBack.classList.add('correct');
             resultIcon.innerHTML = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
             resultTitle.textContent = "Bravo !";
-            correctionText.innerHTML = `La traduction de "${currentQuizWord.fr}" est bien : <strong>${currentQuizWord.nl}</strong>`;
+            correctionText.innerHTML = `La traduction de "${sourceWord}" est bien : <strong>${targetWord}</strong>`;
             quizStatus.textContent = "Bonne réponse ! ✨";
             quizStatus.className = "quiz-status status-correct";
         } else {
             flashcardBack.classList.add('incorrect');
             resultIcon.innerHTML = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
             resultTitle.textContent = "Oups !";
-            correctionText.innerHTML = `La bonne traduction de "${currentQuizWord.fr}" était : <strong>${currentQuizWord.nl}</strong>`;
+            correctionText.innerHTML = `La bonne traduction de "${sourceWord}" était : <strong>${targetWord}</strong>`;
             quizStatus.textContent = "Faux ! 😅";
             quizStatus.className = "quiz-status status-incorrect";
         }

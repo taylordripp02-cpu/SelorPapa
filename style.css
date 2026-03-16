@@ -384,13 +384,19 @@ input[type="text"]:focus {
     padding: 0.5rem 0;
 }
 
-.theme-selector-container {
+.theme-selector-group {
+    display: flex;
+    gap: 1rem;
     width: 100%;
-    max-width: 500px;
+    max-width: 800px;
+    margin-bottom: 0.5rem;
+}
+
+.theme-selector-container {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-bottom: 0.5rem;
 }
 
 .theme-selector-container label {
@@ -824,6 +830,15 @@ input[type="text"]:focus {
     .btn-delete, .btn-edit {
         opacity: 1;
         padding: 6px;
+    }
+
+    .theme-selector-group {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .theme-selector-container {
+        max-width: none;
     }
 
     .flashcard-wrapper {
