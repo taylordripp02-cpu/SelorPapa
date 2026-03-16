@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#4F46E5">
+    <title>Selor Vocabulaire</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Woordenschat <span>Vocabulaire</span></h1>
+            <p>Apprenez vos mots pour le Selor</p>
+        </header>
+
+        <nav class="app-nav">
+            <button id="tab-list" class="nav-btn active">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                <span>Mes mots</span>
+            </button>
+            <button id="tab-quiz" class="nav-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <span>Quiz</span>
+            </button>
+            <button id="tab-library" class="nav-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+                <span>Bibliothèque</span>
+            </button>
+        </nav>
+
+        <div id="view-list" class="view-section active">
+            <section class="input-section">
+            <form id="vocab-form">
+                <div class="input-group">
+                    <div class="input-field">
+                        <label for="dutch-input">Néerlandais (NL)</label>
+                        <input type="text" id="dutch-input" placeholder="ex: het woord" required autocomplete="off">
+                    </div>
+                    <div class="input-divider">↔</div>
+                    <div class="input-field">
+                        <label for="french-input">Français (FR)</label>
+                        <input type="text" id="french-input" placeholder="ex: le mot" required autocomplete="off">
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" id="submit-btn">
+                    <svg id="submit-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span id="submit-text">Ajouter le mot</span>
+                </button>
+            </form>
+        </section>
+
+        <section class="list-section">
+            <div class="list-header">
+                <h3>Vos Mots</h3>
+                <span id="word-count" class="badge">0</span>
+            </div>
+            <ul id="vocab-list" class="vocab-list">
+                <!-- Word items will be dynamically injected here -->
+            </section>
+        </div>
+
+        <div id="view-quiz" class="view-section" style="display: none;">
+            <div class="quiz-container">
+                <div class="theme-selector-container">
+                    <label for="theme-select">Choisissez un thème :</label>
+                    <div class="select-wrapper">
+                        <select id="theme-select" class="theme-select">
+                            <option value="all">Tous les mots (Mélangés)</option>
+                            <option value="perso">Mes mots personnels</option>
+                            <!-- PDF Themes will be injected here -->
+                        </select>
+                        <svg class="select-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
+                </div>
+
+                <div class="quiz-status" id="quiz-status">
+                    <!-- Status like "Correct" or "Incorrect" -->
+                </div>
+                
+                <div class="flashcard-wrapper">
+                    <div class="flashcard" id="flashcard">
+                        <!-- Front of card -->
+                        <div class="flashcard-front">
+                            <span class="card-label">Traduisez ce mot en Néerlandais :</span>
+                            <h2 id="quiz-word-fr" class="quiz-word">...</h2>
+                        </div>
+                        
+                        <!-- Back of card -->
+                        <div class="flashcard-back" id="flashcard-back">
+                            <div class="result-icon" id="result-icon"></div>
+                            <h3 class="result-title" id="result-title">Résultat</h3>
+                            <div class="correction" id="correction-text"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-controls" id="quiz-controls">
+                    <form id="quiz-form" class="quiz-form">
+                        <input type="text" id="quiz-answer" placeholder="Votre réponse en NL..." autocomplete="off">
+                        <button type="submit" class="btn-check">Vérifier</button>
+                    </form>
+                    <button id="btn-next" class="btn-next" style="display: none;">Mot Suivant</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-library" class="view-section" style="display: none;">
+            <div class="search-container">
+                <input type="text" id="library-search" class="search-input" placeholder="Chercher un mot (NL ou FR)...">
+            </div>
+            
+            <div id="library-container" class="library-container">
+                <!-- Library blocks will be injected here -->
+            </div>
+        </div>
+
+    </div>
+
+    <script src="vocabData.js"></script>
+    <script src="brain.js"></script>
+</body>
+</html>
