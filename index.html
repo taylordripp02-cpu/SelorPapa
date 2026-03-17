@@ -13,26 +13,25 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <nav class="app-nav">
+        <button id="tab-list" class="nav-btn active">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            <span>Mes mots</span>
+        </button>
+        <button id="tab-quiz" class="nav-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span>Quiz</span>
+        </button>
+        <button id="tab-library" class="nav-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+            <span>Bibliothèque</span>
+        </button>
+    </nav>
     <div class="app-container">
         <header>
             <h1>Woordenschat <span>Vocabulaire</span></h1>
             <p>Apprenez vos mots pour le Selor</p>
         </header>
-
-        <nav class="app-nav">
-            <button id="tab-list" class="nav-btn active">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                <span>Mes mots</span>
-            </button>
-            <button id="tab-quiz" class="nav-btn">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                <span>Quiz</span>
-            </button>
-            <button id="tab-library" class="nav-btn">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
-                <span>Bibliothèque</span>
-            </button>
-        </nav>
 
         <div id="view-list" class="view-section active">
             <section class="input-section">
@@ -61,7 +60,6 @@
                 <span id="word-count" class="badge">0</span>
             </div>
             <ul id="vocab-list" class="vocab-list">
-                <!-- Word items will be dynamically injected here -->
             </section>
         </div>
 
@@ -74,7 +72,6 @@
                             <select id="theme-select" class="theme-select">
                                 <option value="all">Tous les mots (Mélangés)</option>
                                 <option value="perso">Mes mots personnels</option>
-                                <!-- PDF Themes will be injected here -->
                             </select>
                             <svg class="select-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </div>
@@ -92,19 +89,21 @@
                     </div>
                 </div>
 
-                <div class="quiz-status" id="quiz-status">
-                    <!-- Status like "Correct" or "Incorrect" -->
+                <div class="quiz-progress-container" id="quiz-progress-container" style="display: none;">
+                    <span class="quiz-progress-text">Progression : <span id="quiz-progress-current" class="quiz-progress-current">0</span> / <span id="quiz-progress-total">0</span></span>
+                    <div class="quiz-progress-bar">
+                        <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
+                    </div>
                 </div>
-                
+
+                <div class="quiz-status" id="quiz-status">
+                </div>
                 <div class="flashcard-wrapper">
                     <div class="flashcard" id="flashcard">
-                        <!-- Front of card -->
                         <div class="flashcard-front">
                             <span class="card-label">Traduisez ce mot en Néerlandais :</span>
                             <h2 id="quiz-word-fr" class="quiz-word">...</h2>
                         </div>
-                        
-                        <!-- Back of card -->
                         <div class="flashcard-back" id="flashcard-back">
                             <div class="result-icon" id="result-icon"></div>
                             <h3 class="result-title" id="result-title">Résultat</h3>
@@ -120,6 +119,15 @@
                     </form>
                     <button id="btn-next" class="btn-next" style="display: none;">Mot Suivant</button>
                 </div>
+
+                <div class="mistakes-container" id="mistakes-container" style="display: none;">
+                    <div class="mistakes-header">
+                        <h3>Erreurs à revoir</h3>
+                    </div>
+                    <ul id="mistakes-list" class="lib-word-list">
+                    </ul>
+                    <button id="btn-revise-mistakes" class="btn-check" style="margin-top: 1rem; width: 100%;">Revoir ces mots</button>
+                </div>
             </div>
         </div>
 
@@ -127,13 +135,9 @@
             <div class="search-container">
                 <input type="text" id="library-search" class="search-input" placeholder="Chercher un mot (NL ou FR)...">
             </div>
-            
             <div id="library-container" class="library-container">
-                <!-- Library blocks will be injected here -->
             </div>
         </div>
-
-    </div>
 
     <script src="vocabData.js"></script>
     <script src="brain.js"></script>

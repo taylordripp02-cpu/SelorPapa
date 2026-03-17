@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let editingId = null;
 
-    // View Elements
     const tabList = document.getElementById('tab-list');
     const tabQuiz = document.getElementById('tab-quiz');
     const tabLibrary = document.getElementById('tab-library');
@@ -18,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewQuiz = document.getElementById('view-quiz');
     const viewLibrary = document.getElementById('view-library');
 
-    // Quiz Elements
     const quizWordFr = document.getElementById('quiz-word-fr');
     const quizForm = document.getElementById('quiz-form');
     const quizAnswer = document.getElementById('quiz-answer');
@@ -31,20 +29,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const quizStatus = document.getElementById('quiz-status');
     const themeSelect = document.getElementById('theme-select');
     const quizDirection = document.getElementById('quiz-direction');
+    const quizProgressContainer = document.getElementById('quiz-progress-container');
+    const quizProgressCurrent = document.getElementById('quiz-progress-current');
+    const quizProgressTotal = document.getElementById('quiz-progress-total');
+    const quizProgressFill = document.getElementById('quiz-progress-fill');
+    const btnReviseMistakes = document.getElementById('btn-revise-mistakes');
 
-    // Library Elements
     const librarySearch = document.getElementById('library-search');
 
     let currentQuizWord = null;
     let quizWordPool = [];
+    let remainingQuizWords = [];
+    let wordsDoneCount = 0;
+    
+    let mistakesSession = JSON.parse(localStorage.getItem('selorVocabMistakes')) || [];
+    let isRevisingMistakes = false;
 
-    // Load vocabularies from localStorage
     let userVocabularies = JSON.parse(localStorage.getItem('selorVocab')) || [];
     
-    // Load provided themes from vocabData (if exists)
     let preloadedThemes = typeof vocabData !== 'undefined' ? vocabData : [];
 
-    // Initialize Theme Selector
     function initThemeSelector() {
         preloadedThemes.forEach((themeObj, index) => {
             const option = document.createElement('option');
@@ -54,20 +58,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Call init
     initThemeSelector();
 
-    // Theme select change event
     themeSelect.addEventListener('change', () => {
-        startQuiz(); // restart quiz with new pool
+        isRevisingMistakes = false;
+        resetQuizSession();
     });
 
-    // Direction change event
     quizDirection.addEventListener('change', () => {
-        startQuiz(); // restart quiz with new pool
+        isRevisingMistakes = false;
+        resetQuizSession();
     });
 
-    // Form submit handler
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         
@@ -76,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (dutchWord && frenchWord) {
             if (editingId) {
-                // Update existing
                 const index = userVocabularies.findIndex(v => v.id === editingId);
                 if (index !== -1) {
                     userVocabularies[index].nl = dutchWord;
@@ -87,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitIcon.innerHTML = '<line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>';
                 submitBtn.style.background = '';
             } else {
-                // Add new
                 const newVocab = {
                     id: Date.now().toString(),
                     nl: dutchWord,
@@ -99,17 +99,14 @@ document.addEventListener('DOMContentLoaded', () => {
             saveData();
             renderList();
             
-            // Reset and focus
             form.reset();
             dutchInput.focus();
         }
     });
 
-    // Delete item handler
     window.deleteVocab = (id) => {
         userVocabularies = userVocabularies.filter(v => v.id !== id);
         
-        // If deleting the currently editing item, reset form
         if (editingId === id) {
             editingId = null;
             form.reset();
@@ -122,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderList();
     };    
 
-    // Edit item handler
     window.editVocab = (id) => {
         const vocab = userVocabularies.find(v => v.id === id);
         if (vocab) {
@@ -130,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
             frenchInput.value = vocab.fr;
             editingId = id;
             submitText.textContent = 'Modifier le mot';
-            // Pen icon
             submitIcon.innerHTML = '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>';
             submitBtn.style.background = 'var(--dutch-color)';
             dutchInput.focus();
@@ -138,8 +133,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function saveData() {
-        localStorage.setItem('selorVocab', JSON.stringify(userVocabularies));
+        localStorage.setItem('selorVocab', JSON.parse(JSON.stringify(userVocabularies)));
         updateCount();
+    }
+
+    function saveMistakes() {
+        localStorage.setItem('selorVocabMistakes', JSON.stringify(mistakesSession));
     }
 
     function updateCount() {
@@ -160,7 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Render from newest to oldest
         const reversedVocab = [...userVocabularies].reverse();
 
         reversedVocab.forEach(vocab => {
@@ -189,7 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCount();
     }
 
-    // --- Navigation Logic ---
     function switchTab(activeTab, activeView) {
         [tabList, tabQuiz, tabLibrary].forEach(t => t.classList.remove('active'));
         [viewList, viewQuiz, viewLibrary].forEach(v => v.style.display = 'none');
@@ -202,12 +199,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tabQuiz.addEventListener('click', () => {
         switchTab(tabQuiz, viewQuiz);
-        startQuiz();
+        isRevisingMistakes = false;
+        resetQuizSession();
     });
 
     tabLibrary.addEventListener('click', () => switchTab(tabLibrary, viewLibrary));
 
-    // --- Library Logic ---
     function renderLibrary(searchQuery = '') {
         const container = document.getElementById('library-container');
         if (!container) return;
@@ -219,14 +216,12 @@ document.addEventListener('DOMContentLoaded', () => {
         let hasResults = false;
         
         preloadedThemes.forEach(themeObj => {
-            // Filter words based on query
             const filteredWords = themeObj.words.filter(word => {
                 if (!query) return true;
                 return word.nl.toLowerCase().includes(query) || 
                        word.fr.toLowerCase().includes(query);
             });
             
-            // Skip rendering theme if no matching words
             if (filteredWords.length === 0) return;
             
             hasResults = true;
@@ -237,7 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const title = document.createElement('h4');
             title.className = 'theme-title';
             
-            // Show filtered count if searching, else total
             const countText = query 
                 ? `${filteredWords.length} mot(s) trouvé(s)`
                 : `${themeObj.words.length} mots`;
@@ -251,7 +245,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const li = document.createElement('li');
                 li.className = 'lib-word-item';
                 
-                // Highlight matches if there's a query
                 let nlText = escapeHTML(word.nl);
                 let frText = escapeHTML(word.fr);
                 
@@ -283,69 +276,103 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderLibrary();
     
-    // Search event
     if (librarySearch) {
         librarySearch.addEventListener('input', (e) => {
             renderLibrary(e.target.value);
         });
     }
 
-    // --- Quiz Logic ---
     function buildQuizPool() {
         let pool = [];
         const selection = themeSelect.value;
         
         if (selection === "all") {
-            // Merge everything
             pool = [...userVocabularies];
             preloadedThemes.forEach(t => pool.push(...t.words));
         } else if (selection === "perso") {
-            // Only user ones
             pool = [...userVocabularies];
         } else {
-            // Specific PDF theme
             const themeIndex = parseInt(selection, 10);
             if (!isNaN(themeIndex) && preloadedThemes[themeIndex]) {
                 pool = [...preloadedThemes[themeIndex].words];
             }
         }
         
-        // Let's add IDs to all words in pool if missing to allow filtering
         return pool.map((w, idx) => ({
             ...w, 
             id: w.id || `preloaded_${idx}`
         }));
     }
 
-    function startQuiz() {
-        // Reset state
+    function resetQuizSession() {
+        if (isRevisingMistakes && mistakesSession.length === 0) {
+            isRevisingMistakes = false;
+        }
+
+        if (!isRevisingMistakes) {
+            quizWordPool = buildQuizPool();
+        } else {
+            quizWordPool = [...mistakesSession];
+        }
+        
+        remainingQuizWords = [...quizWordPool].sort(() => Math.random() - 0.5);
+        wordsDoneCount = 0;
+        
+        
+        saveMistakes();
+        renderMistakes();
+        
+        updateProgressUI();
+        nextQuizWord();
+    }
+
+    function updateProgressUI() {
+        const total = quizWordPool.length;
+        if (total === 0) {
+            if (quizProgressContainer) quizProgressContainer.style.display = 'none';
+        } else {
+            if (quizProgressContainer) quizProgressContainer.style.display = 'flex';
+            if (quizProgressCurrent) quizProgressCurrent.textContent = wordsDoneCount;
+            if (quizProgressTotal) quizProgressTotal.textContent = total;
+            
+            if (quizProgressFill) {
+                const percentage = Math.round((wordsDoneCount / total) * 100);
+                quizProgressFill.style.width = percentage + '%';
+            }
+        }
+    }
+
+    function nextQuizWord() {
         resetFlashcard();
         
-        quizWordPool = buildQuizPool();
-
-        // Check if there are enough words
         if (quizWordPool.length === 0) {
             quizWordFr.textContent = "Vide";
             quizWordFr.style.fontSize = "1.5rem";
             quizWordFr.textContent = "Aucun mot dans ce thème !";
             quizForm.style.display = 'none';
+            quizStatus.textContent = '';
+            quizStatus.className = "quiz-status";
+            return;
+        }
+
+        if (remainingQuizWords.length === 0) {
+            quizWordFr.style.fontSize = "1.5rem";
+            quizWordFr.textContent = "Révision terminée ! Rechargement...";
+            quizForm.style.display = 'none';
+            quizStatus.textContent = 'Bravo, vous avez vu tous les mots ! 🎉';
+            quizStatus.className = "quiz-status status-correct";
+            
+            setTimeout(() => {
+                resetQuizSession();
+            }, 2500);
             return;
         }
 
         quizForm.style.display = 'flex';
-        quizWordFr.style.fontSize = ""; // reset
+        quizWordFr.style.fontSize = "";
 
-        // Pick random word
-        // Prevent picking the same word twice in a row if possible
-        let availableVocabs = quizWordPool;
-        if (quizWordPool.length > 1 && currentQuizWord) {
-            availableVocabs = quizWordPool.filter(v => v.id !== currentQuizWord.id);
-        }
+        currentQuizWord = remainingQuizWords.pop();
 
-        const randomIndex = Math.floor(Math.random() * availableVocabs.length);
-        currentQuizWord = availableVocabs[randomIndex];
-
-        // Display word on front based on direction
         const direction = quizDirection.value;
         const isFrToNl = direction === 'fr-nl';
         
@@ -360,7 +387,6 @@ document.addEventListener('DOMContentLoaded', () => {
             quizWordFr.textContent = currentQuizWord.nl;
         }
         
-        // Focus input automatically
         setTimeout(() => quizAnswer.focus(), 100);
     }
 
@@ -370,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
         quizForm.style.display = 'flex';
         btnNext.style.display = 'none';
         quizStatus.textContent = '';
-        flashcardBack.className = 'flashcard-back'; // reset classes
+        flashcardBack.className = 'flashcard-back';
         quizAnswer.disabled = false;
         quizAnswer.focus();
     }
@@ -386,14 +412,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const userAnswer = quizAnswer.value.trim().toLowerCase();
         const correctAnswer = (isFrToNl ? currentQuizWord.nl : currentQuizWord.fr).trim().toLowerCase();
 
-        // Basic string match (ignoring case and outer spaces)
         const isCorrect = userAnswer === correctAnswer;
+        
+        wordsDoneCount++;
+        updateProgressUI();
         
         showQuizResult(isCorrect);
     });
 
     function showQuizResult(isCorrect) {
-        // Disable input
         quizForm.style.display = 'none';
         quizAnswer.disabled = true;
         
@@ -409,6 +436,13 @@ document.addEventListener('DOMContentLoaded', () => {
             correctionText.innerHTML = `La traduction de "${sourceWord}" est bien : <strong>${targetWord}</strong>`;
             quizStatus.textContent = "Bonne réponse ! ✨";
             quizStatus.className = "quiz-status status-correct";
+            
+            const mistakeIndex = mistakesSession.findIndex(w => w.id === currentQuizWord.id);
+            if (mistakeIndex !== -1) {
+                mistakesSession.splice(mistakeIndex, 1);
+                saveMistakes();
+                renderMistakes();
+            }
         } else {
             flashcardBack.classList.add('incorrect');
             resultIcon.innerHTML = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
@@ -416,21 +450,58 @@ document.addEventListener('DOMContentLoaded', () => {
             correctionText.innerHTML = `La bonne traduction de "${sourceWord}" était : <strong>${targetWord}</strong>`;
             quizStatus.textContent = "Faux ! 😅";
             quizStatus.className = "quiz-status status-incorrect";
+            
+            if (!mistakesSession.some(w => w.id === currentQuizWord.id)) {
+                mistakesSession.push(currentQuizWord);
+                saveMistakes();
+                renderMistakes();
+            }
         }
 
-        // Flip the card
         flashcard.classList.add('flipped');
         
-        // Show next button
         btnNext.style.display = 'block';
         btnNext.focus();
     }
 
     btnNext.addEventListener('click', () => {
-        startQuiz();
+        nextQuizWord();
     });
 
-    // Utility to prevent XSS
+    if (btnReviseMistakes) {
+        btnReviseMistakes.addEventListener('click', () => {
+            if (mistakesSession.length > 0) {
+                isRevisingMistakes = true;
+                resetQuizSession();
+            }
+        });
+    }
+
+    function renderMistakes() {
+        const container = document.getElementById('mistakes-container');
+        const list = document.getElementById('mistakes-list');
+        if (!container || !list) return;
+        
+        if (mistakesSession.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        container.style.display = 'block';
+        list.innerHTML = '';
+        
+        mistakesSession.forEach((word) => {
+            const li = document.createElement('li');
+            li.className = 'lib-word-item mistake-item';
+            
+            li.innerHTML = `
+                <span class="lib-word-nl">${escapeHTML(word.nl)}</span>
+                <span class="lib-word-fr">${escapeHTML(word.fr)}</span>
+            `;
+            list.appendChild(li);
+        });
+    }
+
     function escapeHTML(str) {
         return str.replace(/[&<>'"]/g, 
             tag => ({
@@ -443,6 +514,6 @@ document.addEventListener('DOMContentLoaded', () => {
         );
     }
 
-    // Initial render
     renderList();
+    renderMistakes();
 });
