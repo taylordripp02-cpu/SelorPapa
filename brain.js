@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  window.deleteVocab = (id) => {
+  function deleteVocab(id) {
     userVocabularies = userVocabularies.filter((v) => v.id !== id);
 
     if (editingId === id) {
@@ -128,9 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     saveData();
     renderList();
-  };
+  }
 
-  window.editVocab = (id) => {
+  function editVocab(id) {
     const vocab = userVocabularies.find((v) => v.id === id);
     if (vocab) {
       dutchInput.value = vocab.nl;
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
       submitBtn.classList.add("btn-edit-mode");
       dutchInput.focus();
     }
-  };
+  }
 
   function saveData() {
     localStorage.setItem(
@@ -180,6 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const li = document.createElement("li");
       li.className = "vocab-item";
 
+      li.dataset.id = vocab.id;
       li.innerHTML = `
                 <div class="word-pair">
                     <span class="word-nl">${escapeHTML(vocab.nl)}</span>
@@ -187,10 +188,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <span class="word-fr">${escapeHTML(vocab.fr)}</span>
                 </div>
                 <div class="action-buttons">
-                    <button class="btn-edit" onclick="editVocab('${vocab.id}')" title="Modifier">
+                    <button class="btn-edit" data-action="edit" data-id="${vocab.id}" title="Modifier">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </button>
-                    <button class="btn-delete" onclick="deleteVocab('${vocab.id}')" title="Supprimer">
+                    <button class="btn-delete" data-action="delete" data-id="${vocab.id}" title="Supprimer">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                 </div>
@@ -546,6 +547,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderList();
   renderMistakes();
+
+  vocabList.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (btn.dataset.action === "edit") editVocab(id);
+    if (btn.dataset.action === "delete") deleteVocab(id);
+  });
 
   const chatForm = document.getElementById("chat-form");
   const chatInput = document.getElementById("chat-input");
