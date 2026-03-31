@@ -654,7 +654,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const AI_API_KEY = "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";
+  let AI_API_KEY = localStorage.getItem("selor_api_key") || "";
+
+  const btnApiConfig = document.getElementById("btn-api-config");
+  if (btnApiConfig) {
+    btnApiConfig.addEventListener("click", () => {
+      const key = prompt("Veuillez entrer votre clé API Groq (elle sera sauvegardée dans votre navigateur) :", AI_API_KEY);
+      if (key !== null) {
+        AI_API_KEY = key.trim();
+        if (AI_API_KEY) {
+          localStorage.setItem("selor_api_key", AI_API_KEY);
+          alert("Clé API enregistrée avec succès !");
+        } else {
+          localStorage.removeItem("selor_api_key");
+          alert("Clé API supprimée.");
+        }
+      }
+    });
+  }
 
   function appendChatMessage(text, isUser) {
     appendChatMessageDOM(text, isUser, true);
